@@ -23,11 +23,6 @@
       fsType = "vfat";
     };
 
-  fileSystems."/home/uncle/BARRAID1" =
-    { device = "/dev/disk/by-uuid/5a5882f9-36d6-402b-aa53-12aba19883e1";
-      fsType = "btrfs";
-    };
-
   swapDevices =
     [ { device = "/dev/disk/by-uuid/7310859b-b1c9-4828-bc6f-aaeca02bc2d6"; }
     ];

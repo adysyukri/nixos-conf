@@ -92,6 +92,7 @@
       veracrypt
       slack
       mullvad-vpn
+      go
     #  thunderbird
     ];
   };
@@ -120,10 +121,11 @@
     vscode
     keepassxc
     google-chrome
-    go
+    lf
     git
     btop
     discord
+    gnumake
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
