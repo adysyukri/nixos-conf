@@ -93,6 +93,9 @@
       slack
       mullvad-vpn
       go
+      zoom-us
+      obs-studio
+      sqlitebrowser
     #  thunderbird
     ];
   };
@@ -126,6 +129,9 @@
     btop
     discord
     gnumake
+    epson-escpr
+    gnupg
+    pinentry-gtk2
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -172,5 +178,28 @@
     enable = true;
     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+  };
+
+  # virtualization
+  virtualisation.libvirtd.enable = true;
+  programs.virt-manager.enable = true;
+  virtualisation.docker.enable = true;
+
+  # printer
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    openFirewall = true;
   }; 
+
+  # flatpak
+  services.flatpak.enable = true;
+
+  # GnuPG
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+    pinentryFlavor = "gtk2";
+  };
+  services.pcscd.enable = true;
 }
