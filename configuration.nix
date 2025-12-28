@@ -8,6 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./cachix.nix
     ];
 
   # Bootloader.
@@ -24,6 +25,11 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  # Expose port in LAN
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 5000 ];  
+  };
   # Set your time zone.
   time.timeZone = "Asia/Kuala_Lumpur";
 
@@ -51,15 +57,12 @@
 
   # Configure keymap in X11
   services.xserver = {
-    layout = "us";
-    xkbVariant = "";
+    xkb.layout = "us";
+    xkb.variant = "";
   };
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
   # Enable sound with pipewire.
-  sound.enable = true;
+  # sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -87,7 +90,7 @@
     description = "Uncle A";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-      firefox
+    #  firefox
       neovim
       veracrypt
       slack
@@ -96,13 +99,24 @@
       zoom-us
       obs-studio
       sqlitebrowser
+      librewolf
+      jami
+      cockroachdb-bin
+      dbeaver-bin
+      blender
+      inkscape
+      gimp
+      krita
+      libreoffice
+      minikube
+      kubectl
     #  thunderbird
     ];
   };
 
   # Enable automatic login for the user.
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "uncle";
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "uncle";
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
@@ -132,6 +146,13 @@
     epson-escpr
     gnupg
     pinentry-gtk2
+    celluloid
+    lutris
+    bottles
+    heroic
+    wine
+    python3Full
+    python312Packages.pip
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -159,7 +180,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.11"; # Did you read the comment?
+  system.stateVersion = "24.05"; # Did you read the comment?
   
   # mount
   fileSystems."/home/uncle/BARRAID1" =
@@ -185,11 +206,20 @@
   programs.virt-manager.enable = true;
   virtualisation.docker.enable = true;
 
+  # docker
+  users.extraGroups.docker.members = [ "uncle" ];
+  # virtualisation.docker.storageDriver = "btrfs";
+
   # printer
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
     openFirewall = true;
+  };
+
+  services.printing = {
+    enable = true;
+    drivers = [ pkgs.epson-escpr ];
   }; 
 
   # flatpak
@@ -199,7 +229,17 @@
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
-    pinentryFlavor = "gtk2";
   };
   services.pcscd.enable = true;
+
+   hardware.opengl = {
+    enable = true;
+    # driSupport = true;
+    driSupport32Bit = true;
+  };
+  
+  # services.mullvad.vpn.enable = true;
+  # services.mullvad.vpn.package = pkgs.mullvad-vpn;
+  # services.xserver.videoDrivers = ["nvidia"];
+  services.xserver.videoDrivers = ["amdgpu"];
 }
