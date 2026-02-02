@@ -8,7 +8,6 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./cachix.nix
     ];
 
   # Bootloader.
@@ -25,11 +24,6 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # Expose port in LAN
-  networking.firewall = {
-    enable = true;
-    allowedTCPPorts = [ 5000 ];  
-  };
   # Set your time zone.
   time.timeZone = "Asia/Kuala_Lumpur";
 
@@ -52,18 +46,24 @@
   services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
+  # enable kde plasma
+  #services.displayManager.sddm.enable = true;
+  #services.desktopManager.plasma6.enable = true;
+  #services.displayManager.sddm.wayland.enable = true;
 
   # Configure keymap in X11
-  services.xserver = {
-    xkb.layout = "us";
-    xkb.variant = "";
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
   };
 
+  # Enable CUPS to print documents.
+  services.printing.enable = true;
+
   # Enable sound with pipewire.
-  # sound.enable = true;
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -81,78 +81,45 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # Enable mullvad-vpn
-  services.mullvad-vpn.enable = true;
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.uncle = {
     isNormalUser = true;
     description = "Uncle A";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-    #  firefox
-      neovim
-      veracrypt
-      slack
-      mullvad-vpn
-      go
-      zoom-us
-      obs-studio
-      sqlitebrowser
-      librewolf
-      jami
-      cockroachdb-bin
-      dbeaver-bin
-      blender
-      inkscape
-      gimp
-      krita
-      libreoffice
-      minikube
-      kubectl
     #  thunderbird
+      go
+      vscode
+      obs-studio
+      blender
+      gimp
+      inkscape
+      bun 
     ];
   };
 
-  # Enable automatic login for the user.
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "uncle";
-
-  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
-  systemd.services."getty@tty1".enable = false;
-  systemd.services."autovt@tty1".enable = false;
+  # Install firefox.
+  programs.firefox.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  
-  # Enable experimental features
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    wget
+  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+  #  wget
     brave
-    steam
-    vscode
-    keepassxc
     google-chrome
-    lf
-    git
     btop
     discord
-    gnumake
-    epson-escpr
-    gnupg
-    pinentry-gtk2
     celluloid
     lutris
-    bottles
-    heroic
-    wine
-    python3Full
-    python312Packages.pip
+    pinentry-gtk2
+    git
+    gnumake
+    keepassxc
+    opencode
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -180,8 +147,55 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "24.05"; # Did you read the comment?
-  
+  system.stateVersion = "25.11"; # Did you read the comment?
+
+  # virtualization
+  virtualisation.libvirtd.enable = true;
+  programs.virt-manager.enable = true;
+  virtualisation.docker.enable = true;
+
+  # docker
+  users.extraGroups.docker.members = [ "uncle" ];
+
+  # Enable OpenGL
+  hardware.graphics = {
+    enable = true;
+  };
+
+  # Load nvidia driver for Xorg and Wayland
+  services.xserver.videoDrivers = ["nvidia"];
+
+  hardware.nvidia = {
+
+    # Modesetting is required.
+    modesetting.enable = true;
+
+    # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
+    # Enable this if you have graphical corruption issues or application crashes after waking
+    # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead 
+    # of just the bare essentials.
+    powerManagement.enable = false;
+
+    # Fine-grained power management. Turns off GPU when not in use.
+    # Experimental and only works on modern Nvidia GPUs (Turing or newer).
+    powerManagement.finegrained = false;
+
+    # Use the NVidia open source kernel module (not to be confused with the
+    # independent third-party "nouveau" open source driver).
+    # Support is limited to the Turing and later architectures. Full list of 
+    # supported GPUs is at: 
+    # https://github.com/NVIDIA/open-gpu-kernel-modules#compatible-gpus 
+    # Only available from driver 515.43.04+
+    open = true;
+
+    # Enable the Nvidia settings menu,
+	# accessible via `nvidia-settings`.
+    nvidiaSettings = true;
+
+    # Optionally, you may need to select the appropriate driver version for your specific GPU.
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+
   # mount
   fileSystems."/home/uncle/BARRAID1" =
     { device = "/dev/disk/by-uuid/5a5882f9-36d6-402b-aa53-12aba19883e1";
@@ -201,30 +215,6 @@
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
   };
 
-  # virtualization
-  virtualisation.libvirtd.enable = true;
-  programs.virt-manager.enable = true;
-  virtualisation.docker.enable = true;
-
-  # docker
-  users.extraGroups.docker.members = [ "uncle" ];
-  # virtualisation.docker.storageDriver = "btrfs";
-
-  # printer
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
-  };
-
-  services.printing = {
-    enable = true;
-    drivers = [ pkgs.epson-escpr ];
-  }; 
-
-  # flatpak
-  services.flatpak.enable = true;
-
   # GnuPG
   programs.gnupg.agent = {
     enable = true;
@@ -232,14 +222,11 @@
   };
   services.pcscd.enable = true;
 
-   hardware.opengl = {
+  programs.nix-ld = {
     enable = true;
-    # driSupport = true;
-    driSupport32Bit = true;
+    libraries = with pkgs; [ glib ];
   };
-  
-  # services.mullvad.vpn.enable = true;
-  # services.mullvad.vpn.package = pkgs.mullvad-vpn;
-  # services.xserver.videoDrivers = ["nvidia"];
-  services.xserver.videoDrivers = ["amdgpu"];
+
+  # environment.variables.PATH = [ "/home/uncle/.opencode/bin" ] ++ config.environment.pathsToLink;
+  #  environment.sessionVariables.PATH = [ "/home/uncle/.opencode/bin" ] ++ config.environment.pathsToLink;
 }
